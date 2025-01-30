@@ -1,0 +1,5 @@
+pkg/
+.idea/
+pkg/
+tmp/main
+tmp/build-errors.log

@@ -28,3 +28,10 @@ We have Get, Post, Patch and Delete methods to interact with the API.
 | POST | /api/schedules | Create a new schedule | `{"content": "Schedule content"}` |
 | PATCH | /api/schedules/:id | Update a schedule | `{"content": "Updated schedule content"}` |
 | DELETE | /api/schedules/:id | Delete a schedule | None |
+
+
+### Command migration ###
+
+`goose create new_user_table sql` - to create SQL migration;  
+`goose -dir ./db/migrations mysql "user:password@tcp(mysql:3306)/my_database?parseTime=true" up` - to execute migration;
+`goose -dir ./db/migrations mysql "user:password@tcp(mysql:3306)/my_database?parseTime=true" down` - roll back migration;
