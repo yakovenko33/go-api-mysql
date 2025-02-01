@@ -1,6 +1,7 @@
 package routes
 
 import (
+	users_routes "go-api-docker/GoCrm/Users/UI/Routes"
 	"go-api-docker/handler"
 
 	"github.com/gin-contrib/cors"
@@ -21,10 +22,14 @@ func SetupRoutes() *gin.Engine {
 		api.PATCH("/schedule/:id", handler.Update)
 		api.DELETE("/schedule/:id", handler.Delete)
 	}
+
+	users_routes.RegisterRoutes(api)
 	health := r.Group("/")
 	{
 		health.GET("/health", handler.HealthCheck)
-		health.GET("/test", handler.Test)
+		//health.GET("/test", handler.Test)
+		//health.GET("/test/test", handler.Test)
 	}
+
 	return r
 }

@@ -33,5 +33,9 @@ We have Get, Post, Patch and Delete methods to interact with the API.
 ### Command migration ###
 
 `goose create new_user_table sql` - to create SQL migration;  
-`goose -dir ./db/migrations mysql "user:password@tcp(mysql:3306)/my_database?parseTime=true" up` - to execute migration;
-`goose -dir ./db/migrations mysql "user:password@tcp(mysql:3306)/my_database?parseTime=true" down` - roll back migration;
+`goose -dir ./database/migrations mysql "user:password@tcp(mysql:3306)/my_database?parseTime=true" up` - to execute migration;
+`goose -dir ./database/migrations mysql "user:password@tcp(mysql:3306)/my_database?parseTime=true" down` - roll back migration;
+
+
+### Command rebuild ###
+go run main.go
