@@ -14,7 +14,7 @@ type User struct {
 	Password       string    `gorm:"column:password"`
 	CreatedAt      string    `gorm:"column:created_at"`
 	UpdatedAt      string    `gorm:"column:updated_at"`
-	Status         string    `gorm:"column:status"`
+	Status         uint8     `gorm:"column:status"`
 	CreatedBy      string    `gorm:"column:created_by"`
 	ModifiedUserId string    `gorm:"column:modified_user_id"`
 }

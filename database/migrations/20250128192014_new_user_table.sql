@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     password varchar(255) not null,
     created_at timestamp null,
     updated_at timestamp null,
+    deleted_at timestamp null,
     status tinyint(1) default 0 not null,
     created_by varchar(36) null,
     modified_user_id varchar(36) null,

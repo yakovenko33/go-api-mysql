@@ -39,3 +39,7 @@ We have Get, Post, Patch and Delete methods to interact with the API.
 
 ### Command rebuild ###
 go run main.go
+
+
+### Command rebuild ###
+`go run main.go create-super-admin`
