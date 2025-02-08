@@ -1,7 +1,7 @@
-package Routes
+package routes
 
 import (
-	users_controllers "go-api-docker/GoCrm/Users/UI/Controllers"
+	users_controllers "go-api-docker/internal/go_crm/users/ui/controllers"
 
 	"github.com/gin-gonic/gin"
 )

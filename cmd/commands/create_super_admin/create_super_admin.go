@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 
-	password "go-api-docker/GoCrm/Common/Security/Password"
-	users_entities "go-api-docker/GoCrm/Users/Domains/Entities"
-	database "go-api-docker/database"
+	database "go-api-docker/internal/common/database"
+	password "go-api-docker/internal/common/security/password"
+	users_entities "go-api-docker/internal/go_crm/users/domains/entities"
 )
 
 var СreateSuperAdmin = &cobra.Command{

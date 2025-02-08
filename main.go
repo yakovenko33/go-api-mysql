@@ -1,16 +1,19 @@
 package main
 
 import (
-	"go-api-docker/GoCrm/Common/Logging"
 	"go-api-docker/cmd"
-	"go-api-docker/database"
-	"go-api-docker/routes"
+	"go-api-docker/internal/common/database"
+	logging "go-api-docker/internal/common/logging"
+	"go-api-docker/internal/common/routes"
 )
 
 func main() {
-	Logging.InitLogging()
+	logging.InitLogging()
+	defer logging.Logger.Sync()
+
 	database.InitDBClient()
 	cmd.Execute()
+
 	r := routes.SetupRoutes()
 	r.Run(":3000")
 }

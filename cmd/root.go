@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	createS_uper_admin "go-api-docker/cmd/commands/CreateSuperAdmin"
+	createS_uper_admin "go-api-docker/cmd/commands/create_super_admin"
 
 	"github.com/spf13/cobra"
 )
