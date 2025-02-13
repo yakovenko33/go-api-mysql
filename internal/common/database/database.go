@@ -13,15 +13,16 @@ import (
 )
 
 var (
-	DB   *gorm.DB
-	once sync.Once
+	once         sync.Once
+	errorConnect error
+	db           *gorm.DB
 )
 
-func InitDBClient() {
+func ProvideDBConnection() (*gorm.DB, error) {
 	once.Do(func() {
 		err := godotenv.Load()
 		if err != nil {
-			log.Print(".env file not found, trying to get from environment")
+			errorConnect = err
 		}
 
 		var (
@@ -40,18 +41,21 @@ func InitDBClient() {
 			dbname,
 		)
 
-		DB, err = gorm.Open(mysql.Open(dns), &gorm.Config{})
+		db, err = gorm.Open(mysql.Open(dns), &gorm.Config{})
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(err)
 
-		sqlDB, err := DB.DB()
+		sqlDB, err := db.DB()
 		if err != nil {
-			log.Fatal(err) // Обработка ошибки
+			errorConnect = err
+			log.Fatalf("listen: %s\n", errorConnect)
 		}
 		sqlDB.SetMaxOpenConns(100)
 		sqlDB.SetMaxIdleConns(10)
 		sqlDB.SetConnMaxLifetime(60 * time.Second)
 	})
+
+	return db, errorConnect
 }

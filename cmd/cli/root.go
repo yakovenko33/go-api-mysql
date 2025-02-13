@@ -1,10 +1,11 @@
-package cmd
+package cli
 
 import (
 	"fmt"
 	"os"
 
-	createS_uper_admin "go-api-docker/cmd/commands/create_super_admin"
+	creates_uper_admin "go-api-docker/cmd/cli/commands/create_super_admin"
+	database "go-api-docker/internal/common/database"
 
 	"github.com/spf13/cobra"
 )
@@ -17,10 +18,17 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	// Add the custom greet command to the root command
-	rootCmd.AddCommand(createS_uper_admin.СreateSuperAdmin)
+
 }
 
 func Execute() {
+	DB, err := database.ProvideDBConnection()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	rootCmd.AddCommand(creates_uper_admin.СreateSuperAdmin(DB))
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

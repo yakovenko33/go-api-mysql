@@ -1,4 +1,4 @@
-package commands
+package create_super_admin
 
 import (
 	"errors"
@@ -10,47 +10,48 @@ import (
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 
-	database "go-api-docker/internal/common/database"
 	password "go-api-docker/internal/common/security/password"
 	users_entities "go-api-docker/internal/go_crm/users/domains/entities"
 )
 
-var СreateSuperAdmin = &cobra.Command{
-	Use:   "create-super-admin",
-	Short: "Create super admin command",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Create super admin!")
+func СreateSuperAdmin(DB *gorm.DB) *cobra.Command {
+	return &cobra.Command{
+		Use:   "create-super-admin",
+		Short: "Create super admin command",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Create super admin!")
 
-		userByEmail, err := findUserByEmail()
-		if err != nil {
-			fmt.Println("Error when findUserByEmail:", err)
-			return
-		}
-		if userByEmail != nil {
-			fmt.Println("Super Admin alredy created.", err)
-			return
-		}
+			userByEmail, err := findUserByEmail()
+			if err != nil {
+				fmt.Println("Error when findUserByEmail:", err)
+				return
+			}
+			if userByEmail != nil {
+				fmt.Println("Super Admin alredy created.", err)
+				return
+			}
 
-		user, err := factoryUser()
-		if err != nil {
-			fmt.Println("Error when factory user:", err)
-			return
-		}
+			user, err := factoryUser()
+			if err != nil {
+				fmt.Println("Error when factory user:", err)
+				return
+			}
 
-		result := database.DB.Create(user)
+			result := DB.Create(user)
 
-		if result.Error != nil {
-			fmt.Println("Error inserting user:", result.Error)
-		} else {
-			fmt.Println("User created with ID:", user.ID)
-		}
-	},
+			if result.Error != nil {
+				fmt.Println("Error inserting user:", result.Error)
+			} else {
+				fmt.Println("User created with ID:", user.ID)
+			}
+		},
+	}
 }
 
-func findUserByEmail() (*users_entities.User, error) {
+func findUserByEmail(DB *gorm.DB) (*users_entities.User, error) {
 	fmt.Println("Find record by email")
 	var user users_entities.User
-	result := database.DB.Where("email = ?", os.Getenv("SUPER_ADMIN_EMAIL")).First(&user)
+	result := DB.Where("email = ?", os.Getenv("SUPER_ADMIN_EMAIL")).First(&user)
 
 	if result.Error != nil {
 		return nil, result.Error

@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"sync"
 
-	logging "go-api-docker/internal/common/logging"
-
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 
-	database "go-api-docker/internal/common/database"
-
 	"github.com/casbin/casbin/v2"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 var (
@@ -18,23 +16,24 @@ var (
 	once               sync.Once
 )
 
-func InitAccessControlModel() {
+func InitAccessControlModel(DB *gorm.DB, logger *zap.Logger) *casbin.Enforcer {
 	once.Do(func() {
-		adapter, err := gormadapter.NewAdapterByDB(database.DB)
+		adapter, err := gormadapter.NewAdapterByDB(DB)
 		if err != nil {
-			logging.Logger.Error(fmt.Sprintf("Error create addapter %s", err))
+			logger.Error(fmt.Sprintf("Error create addapter %s", err))
 		}
 
 		AccessControlModel, err = casbin.NewEnforcer("model.conf", adapter)
 		if err != nil {
-			logging.Logger.Error(fmt.Sprintf("Error load model %s", err))
+			logger.Error(fmt.Sprintf("Error load model %s", err))
 		}
 
-		err = AccessControlModel.LoadPolicy()
+		/*err = AccessControlModel.LoadPolicy()
 		if err != nil {
-			logging.Logger.Error(fmt.Sprintf("Error load policy %s", err))
-		}
+			logger.Error(fmt.Sprintf("Error load policy %s", err))
+		}*/
 	})
+	return AccessControlModel
 }
 
 /*CREATE TABLE casbin_rule (
