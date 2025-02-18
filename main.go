@@ -1,19 +1,47 @@
 package main
 
 import (
-	"go-api-docker/cmd"
-	"go-api-docker/internal/common/database"
+	"fmt"
+	"os"
+
+	"go.uber.org/fx"
+
+	cli "go-api-docker/cmd/cli"
+	database "go-api-docker/internal/common/database"
 	logging "go-api-docker/internal/common/logging"
-	"go-api-docker/internal/common/routes"
+	access_control_model "go-api-docker/internal/common/security/access_control_models"
+	server "go-api-docker/internal/common/server"
+	register_routes "go-api-docker/internal/common/server/controllers"
 )
 
+func coreApp() *fx.App {
+	app := fx.New(
+		fx.Provide(
+			logging.InitLogging,
+			database.ProvideDBConnection,
+			access_control_model.InitAccessControlModel,
+			server.NewRouter,
+		),
+		register_routes.Controllers,
+		fx.Invoke(
+			server.StartServer,
+		),
+	)
+	return app
+}
+
 func main() {
-	logging.InitLogging()
-	defer logging.Logger.Sync()
+	if len(os.Args) < 2 {
+		app := coreApp()
+		app.Run()
+		return
+	}
 
-	database.InitDBClient()
-	cmd.Execute()
-
-	r := routes.SetupRoutes()
-	r.Run(":3000")
+	switch os.Args[1] {
+	case "cli":
+		os.Args = os.Args[1:]
+		cli.RunCLI()
+	default:
+		fmt.Println("Unknown mode. Usage: myapp <web|cli>")
+	}
 }

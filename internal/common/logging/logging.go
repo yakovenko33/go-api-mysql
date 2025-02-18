@@ -1,11 +1,11 @@
 package logging
 
 import (
+	"sync"
+
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"sync"
 )
 
 var (
@@ -13,7 +13,7 @@ var (
 	once   sync.Once
 )
 
-func InitLogging() {
+func InitLogging() *zap.Logger {
 	once.Do(func() {
 		logFile := &lumberjack.Logger{
 			Filename:   "internal/common/logs.log", // Log file path
@@ -41,7 +41,5 @@ func InitLogging() {
 		Logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.WarnLevel))
 	})
 
-	// Log messages
-	//logger.Info("This is an info message with a stack trace.")
-	//logger.Error("This is an error message with a stack trace.")
+	return Logger
 }

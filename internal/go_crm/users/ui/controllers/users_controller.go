@@ -4,6 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateUser(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "New user is created successfully"})
+func createUser(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "New user is created successfully!!!"})
+}
+
+func RegisterUserRoutes(router *gin.Engine) {
+	group := router.Group("/api")
+	{
+		group.POST("/user", createUser)
+	}
 }
