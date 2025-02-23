@@ -19,11 +19,13 @@ type JwtAuthManagerInterface interface {
 }
 
 type JwtAuthManager struct {
-	jwt_auth_repository *jwt_auth_repository.JwtAuthRepository
+	jwt_auth_repository jwt_auth_repository.JwtAuthRepositoryInterface
 }
 
-func (m *JwtAuthManager) NewJwtAuthManager(jwt_auth_repository *jwt_auth_repository.JwtAuthRepository) {
-	m.jwt_auth_repository = jwt_auth_repository
+func NewJwtAuthManager(jwt_auth_repository jwt_auth_repository.JwtAuthRepositoryInterface) *JwtAuthManager {
+	return &JwtAuthManager{
+		jwt_auth_repository: jwt_auth_repository,
+	}
 }
 
 type JwtTokens struct {

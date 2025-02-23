@@ -8,9 +8,9 @@ import (
 )
 
 type JwtAuthRepositoryInterface interface {
-	AddTokens(entity Tokens) (string, error)
-	DeleteTokens() (string, error)
-	RefreshTokenExist(refreshToken string) (string, error)
+	AddTokens(entity *Tokens) (string, error)
+	//DeleteTokens() (string, error)
+	RefreshTokenExist(refreshToken string) (*Tokens, error)
 }
 
 type Tokens struct {
@@ -29,8 +29,10 @@ type JwtAuthRepository struct {
 	db *gorm.DB
 }
 
-func (m *JwtAuthRepository) NewJwtAuthRepository(db *gorm.DB) {
-	m.db = db
+func NewJwtAuthRepository(db *gorm.DB) *JwtAuthRepository {
+	return &JwtAuthRepository{
+		db: db,
+	}
 }
 
 func (m JwtAuthRepository) AddTokens(entity *Tokens) (string, error) {
