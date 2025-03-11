@@ -22,7 +22,7 @@ type JwtAuthManager struct {
 	jwt_auth_repository jwt_auth_repository.JwtAuthRepositoryInterface
 }
 
-func NewJwtAuthManager(jwt_auth_repository jwt_auth_repository.JwtAuthRepositoryInterface) *JwtAuthManager {
+func NewJwtAuthManager(jwt_auth_repository jwt_auth_repository.JwtAuthRepositoryInterface) JwtAuthManagerInterface {
 	return &JwtAuthManager{
 		jwt_auth_repository: jwt_auth_repository,
 	}
@@ -41,7 +41,7 @@ type UserData struct {
 
 var secretKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 
-func (m JwtAuthManager) GenerateTokens(userData *UserData) (JwtTokens, error) {
+func (m *JwtAuthManager) GenerateTokens(userData *UserData) (JwtTokens, error) {
 	accessTokenExpiry := time.Now().UTC().Add(15 * time.Minute)
 	accessTokenString, err := m.generateTokens(userData, &accessTokenExpiry)
 	if err != nil {
@@ -63,7 +63,7 @@ func (m JwtAuthManager) GenerateTokens(userData *UserData) (JwtTokens, error) {
 	return jwtTokens, err
 }
 
-func (m JwtAuthManager) generateTokens(userData *UserData, expiresIn *time.Time) (string, error) {
+func (m *JwtAuthManager) generateTokens(userData *UserData, expiresIn *time.Time) (string, error) {
 	tokenClaims := jwt.MapClaims{
 		"sub": userData.UserId,
 		"exp": expiresIn.Unix(),
@@ -77,7 +77,7 @@ func (m JwtAuthManager) generateTokens(userData *UserData, expiresIn *time.Time)
 	return tokenString, nil
 }
 
-func (m JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtTokens, expiresIn time.Time) (string, error) {
+func (m *JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtTokens, expiresIn time.Time) (string, error) {
 	tokens := jwt_auth_repository.Tokens{
 		ID:           uuid.New(),
 		AccessToken:  jwtTokens.AccessToken,
@@ -93,7 +93,7 @@ func (m JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtToken
 	return result, err
 }
 
-func (m JwtAuthManager) RefreshTokens(refreshTokenString string, userData *UserData) (JwtTokens, error) {
+func (m *JwtAuthManager) RefreshTokens(refreshTokenString string, userData *UserData) (JwtTokens, error) {
 	token, err := m.jwt_auth_repository.RefreshTokenExist(refreshTokenString)
 	if token == nil {
 		return JwtTokens{}, nil
@@ -111,7 +111,7 @@ func (m JwtAuthManager) RefreshTokens(refreshTokenString string, userData *UserD
 	return m.GenerateTokens(userData)
 }
 
-func (m JwtAuthManager) VerifyToken(tokenString string) (string, error) {
+func (m *JwtAuthManager) VerifyToken(tokenString string) (string, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signature method: %v", token.Header["alg"])

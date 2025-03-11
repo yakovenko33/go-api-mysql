@@ -13,7 +13,6 @@ import (
 	"go.uber.org/zap"
 
 	jwt_auth "go-api-docker/internal/common/security/auth/jwt_auth"
-	auth_middleware "go-api-docker/internal/common/server/middleware/auth"
 )
 
 var (
@@ -21,13 +20,13 @@ var (
 	router *gin.Engine
 )
 
-func NewRouter(jwt_auth *jwt_auth.JwtAuthManagerInterface) *gin.Engine {
+func NewRouter(jwt_auth jwt_auth.JwtAuthManagerInterface) *gin.Engine {
 	once.Do(func() {
 		router = gin.Default()
 		config := cors.DefaultConfig()
 		config.AllowAllOrigins = true
 
-		router.Use(auth_middleware.AuthMiddleware(jwt_auth))
+		//router.Use(auth_middleware.AuthMiddleware(jwt_auth))
 
 		config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 		config.AllowHeaders = []string{"Origin", "Content-Type"}
