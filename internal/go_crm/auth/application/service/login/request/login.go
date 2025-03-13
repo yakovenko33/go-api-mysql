@@ -1,8 +1,6 @@
 package request
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 
 	validator "go-api-docker/internal/common/validator"
@@ -21,7 +19,6 @@ type Login struct {
 
 func CreatedLoginFromContext(c *gin.Context) *Login {
 	var requestData requestData
-	fmt.Println("CreatedLoginFromContext")
 
 	validatorInstance := validator.NewValidator("ru")
 	if err := c.ShouldBindJSON(&requestData); err != nil {

@@ -2,11 +2,23 @@ package controllers
 
 import (
 	"fmt"
+	jwt_auth "go-api-docker/internal/common/security/auth/jwt_auth"
+	response_helper "go-api-docker/internal/common/ui/response"
+	login_handler "go-api-docker/internal/go_crm/auth/application/service/login"
 	login_request "go-api-docker/internal/go_crm/auth/application/service/login/request"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+func loginT(c *gin.Context) {
+	loginRequest := login_request.CreatedLoginFromContext(c)
+
+	result := login_handler.NewLoginHandler[jwt_auth.JwtTokens]().Handle(loginRequest)
+
+	response_helper.Response[jwt_auth.JwtTokens](c, result)
+}
 
 func login(c *gin.Context) {
 	fmt.Println("CreatedLoginFromContext")
@@ -41,6 +53,7 @@ func RegisterAuthRoutes(router *gin.Engine) {
 	group := router.Group("/api")
 	{
 		group.POST("/login", login)
+		group.POST("/loginT", loginT)
 		group.POST("/loguout", loguout)
 		group.POST("/refreshToken", refreshToken)
 		group.POST("/recoveryPassword", recoveryPassword)
