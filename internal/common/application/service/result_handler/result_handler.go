@@ -105,5 +105,10 @@ func FactoryResultHandler[T any](request RequestInterface) (*ResultHandler[T], e
 			SetStatus(ServerError), errors.New("error mapping data")
 	}
 
-	return &ResultHandler[T]{}, nil
+	return &ResultHandler[T]{
+		statusCode:       200,
+		status:           "",
+		errorString:      "",
+		errorsValidation: make(map[string]string),
+	}, nil
 }

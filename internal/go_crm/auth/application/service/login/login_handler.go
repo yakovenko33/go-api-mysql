@@ -6,18 +6,20 @@ import (
 	login_request "go-api-docker/internal/go_crm/auth/application/service/login/request"
 )
 
-type LoginHandler struct{
-	resultHandler *result_handler.ResultHandler[jwt_auth.JwtTokens],
+type LoginHandler struct {
+	resultHandler *result_handler.ResultHandler[jwt_auth.JwtTokens]
 }
 
 func NewLoginHandler() *LoginHandler {
-	return &LoginHandler{}
+	return &LoginHandler{
+		resultHandler: &result_handler.ResultHandler[jwt_auth.JwtTokens]{},
+	}
 }
 
 func (m *LoginHandler) Handle(request *login_request.Login) *result_handler.ResultHandler[jwt_auth.JwtTokens] {
-	m.resultHandler, err := result_handler.FactoryResultHandler[jwt_auth.JwtTokens](request)
-	
-	if (err != nil) {
+	_, err := result_handler.FactoryResultHandler[jwt_auth.JwtTokens](request)
+
+	if err != nil {
 		return m.resultHandler
 	}
 
