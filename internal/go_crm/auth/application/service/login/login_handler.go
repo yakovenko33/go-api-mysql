@@ -17,11 +17,12 @@ func NewLoginHandler() *LoginHandler {
 }
 
 func (m *LoginHandler) Handle(request *login_request.Login) *result_handler.ResultHandler[jwt_auth.JwtTokens] {
-	_, err := result_handler.FactoryResultHandler[jwt_auth.JwtTokens](request)
+	resultHandler, err := result_handler.FactoryResultHandler[jwt_auth.JwtTokens](request)
 
 	if err != nil {
-		return m.resultHandler
+		return resultHandler
 	}
+	m.resultHandler = resultHandler
 
 	return m.resultHandler
 }

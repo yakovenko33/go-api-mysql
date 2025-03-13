@@ -9,9 +9,9 @@ import (
 func Response[T any](c *gin.Context, result *result_handler.ResultHandler[T]) {
 	if len(result.GetErrorsValidation()) > 0 || result.GetError() != "" {
 		c.JSON(result.GetStatusCode(), gin.H{
+			"data":              nil,
 			"validation_errors": result.GetErrorsValidation(),
 			"error":             result.GetError(),
-			"result":            nil,
 			"status":            result.GetStatus(),
 		})
 		return
@@ -21,8 +21,8 @@ func Response[T any](c *gin.Context, result *result_handler.ResultHandler[T]) {
 
 	c.JSON(result.GetStatusCode(), gin.H{
 		"data":              resultValue,
-		"errors":            "",
+		"error":             "",
 		"validation_errors": nil,
-		"status":            result,
+		"status":            result.GetStatus(),
 	})
 }
