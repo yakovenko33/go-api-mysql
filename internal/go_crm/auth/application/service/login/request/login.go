@@ -3,6 +3,7 @@ package request
 import (
 	"github.com/gin-gonic/gin"
 
+	request_factory "go-api-docker/internal/common/application/service/request/request_factory"
 	validator "go-api-docker/internal/common/validator"
 )
 
@@ -20,15 +21,15 @@ type Login struct {
 func CreatedLoginFromContext(c *gin.Context) *Login {
 	var requestData requestData
 
-	validatorInstance := validator.NewValidator("ru")
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		return &Login{
 			requestData: requestData,
 			err:         err,
-			validator:   validatorInstance,
+			validator:   nil,
 		}
 	}
 
+	validatorInstance := validator.NewValidator(request_factory.GetLanguage(c))
 	return &Login{
 		requestData: requestData,
 		err:         nil,

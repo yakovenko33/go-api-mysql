@@ -3,6 +3,9 @@ package validator
 import (
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/ru"
+
+	"strings"
+
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
@@ -62,7 +65,8 @@ func (m *Validator) Validate(dto interface{}) map[string]string {
 		validationErrors, ok := err.(validator.ValidationErrors)
 		if ok {
 			for _, e := range validationErrors {
-				errors[e.Field()] = e.Translate(*m.translator)
+				fieldError := strings.ToLower(e.Field())
+				errors[fieldError] = e.Translate(*m.translator)
 			}
 		}
 	}
