@@ -3,4 +3,5 @@ pkg/
 pkg/
 tmp/main
 tmp/build-errors.log
+internal/common/logging/logs.log
 .env
