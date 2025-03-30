@@ -11,16 +11,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func loginT(c *gin.Context) {
+type AuthController struct {
+	loginHandler *login_handler.LoginHandler
+}
+
+func NewAuthController(loginHandler *login_handler.LoginHandler) *AuthController {
+	return &AuthController{
+		loginHandler: loginHandler,
+	}
+}
+
+func (m *AuthController) Login(c *gin.Context) {
 	loginRequest := login_request.CreatedLoginFromContext(c)
 
-	handler := login_handler.NewLoginHandler()
-	result := handler.Handle(loginRequest)
+	result := m.loginHandler.Handle(loginRequest)
 
 	response_helper.Response(c, result)
 }
 
-func login(c *gin.Context) {
+func (m *AuthController) LoginTest(c *gin.Context) {
 	fmt.Println("CreatedLoginFromContext")
 	loginRequest := login_request.CreatedLoginFromContext(c)
 
@@ -37,25 +46,25 @@ func login(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "login1", "test": len(errors)})
 }
 
-func loguout(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "loguout"})
+func (m *AuthController) Loguout(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Loguout"})
 }
 
-func refreshToken(c *gin.Context) {
+func (m *AuthController) RefreshToken(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "refreshToken"})
 }
 
-func recoveryPassword(c *gin.Context) {
+func (m *AuthController) RecoveryPassword(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "recoveryPassword"})
 }
 
-func RegisterAuthRoutes(router *gin.Engine) {
+func RegisterAuthRoutes(router *gin.Engine, authController *AuthController) {
 	group := router.Group("/api")
 	{
-		group.POST("/login", login)
-		group.POST("/loginT", loginT)
-		group.POST("/loguout", loguout)
-		group.POST("/refreshToken", refreshToken)
-		group.POST("/recoveryPassword", recoveryPassword)
+		group.POST("/login", authController.Login)
+		group.POST("/loginTest", authController.LoginTest)
+		group.POST("/loguout", authController.Loguout)
+		group.POST("/refreshToken", authController.RefreshToken)
+		group.POST("/recoveryPassword", authController.RecoveryPassword)
 	}
 }

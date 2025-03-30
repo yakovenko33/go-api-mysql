@@ -18,8 +18,6 @@ type Tokens struct {
 	ID           uuid.UUID `gorm:"column:id"`
 	AccessToken  string    `gorm:"column:access_token"`
 	RefreshToken string    `gorm:"column:refresh_token"`
-	UserId       string    `gorm:"column:user_id"`
-	UserIp       string    `gorm:"column:user_ip"`
 	UserAgent    string    `gorm:"column:user_agent"`
 	ExpiresIn    time.Time `gorm:"type:datetime;column:expires_in"`
 	CreatedAt    time.Time `gorm:"type:datetime;column:created_at"`

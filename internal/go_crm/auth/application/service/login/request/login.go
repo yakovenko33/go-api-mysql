@@ -8,8 +8,9 @@ import (
 )
 
 type requestData struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
+	Password  string `json:"password" validate:"required"`
+	UserAgent string
 }
 
 type Login struct {
@@ -22,6 +23,9 @@ func CreatedLoginFromContext(c *gin.Context) *Login {
 	var requestData requestData
 
 	if err := c.ShouldBindJSON(&requestData); err != nil {
+		userAgent := c.GetHeader("User-Agent")
+		requestData.UserAgent = userAgent
+
 		return &Login{
 			requestData: requestData,
 			err:         err,
@@ -43,6 +47,10 @@ func (m *Login) GetEmail() string {
 
 func (m *Login) GetPassword() string {
 	return m.requestData.Password
+}
+
+func (m *Login) GetUserAgent() string {
+	return m.requestData.UserAgent
 }
 
 func (m *Login) GetError() error {

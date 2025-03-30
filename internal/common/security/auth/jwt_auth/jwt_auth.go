@@ -35,7 +35,6 @@ type JwtTokens struct {
 
 type UserData struct {
 	UserId    string
-	UserIp    string
 	UserAgent string
 }
 
@@ -83,7 +82,6 @@ func (m *JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtToke
 		AccessToken:  jwtTokens.AccessToken,
 		RefreshToken: jwtTokens.RefreshToken,
 		UserId:       userData.UserId,
-		UserIp:       userData.UserIp,
 		UserAgent:    userData.UserAgent,
 		ExpiresIn:    expiresIn,
 		CreatedAt:    time.Now().UTC(),
