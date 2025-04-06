@@ -23,14 +23,20 @@ var (
 func NewRouter(jwt_auth jwt_auth.JwtAuthManagerInterface) *gin.Engine {
 	once.Do(func() {
 		router = gin.Default()
-		config := cors.DefaultConfig()
+		/*config := cors.DefaultConfig()
 		config.AllowAllOrigins = true
 
-		//router.Use(auth_middleware.AuthMiddleware(jwt_auth))
 
 		config.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 		config.AllowHeaders = []string{"Origin", "Content-Type"}
-		router.Use(cors.New(config))
+		router.Use(cors.New(config))*/
+
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"https://your-frontend-domain.com"},        // Разрешенные домены (домен вашего SPA)
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Разрешенные HTTP методы
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // Разрешенные заголовки
+			AllowCredentials: true,                                                // Разрешить отправку cookie
+		}))
 	})
 
 	return router
@@ -38,7 +44,7 @@ func NewRouter(jwt_auth jwt_auth.JwtAuthManagerInterface) *gin.Engine {
 
 func StartServer(lc fx.Lifecycle, router *gin.Engine, logger *zap.Logger) {
 	server := &http.Server{
-		Addr:         ":3000",
+		Addr:         ":8080",
 		Handler:      router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

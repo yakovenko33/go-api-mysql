@@ -59,7 +59,7 @@ func (m *AuthController) Loguout(c *gin.Context) {
 }
 
 func (m *AuthController) RefreshToken(c *gin.Context) {
-	cookie, err := c.Cookie("refresh_token")
+	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
 		c.JSON(401, gin.H{"error": "You does not have refresh_token"})
 		return
@@ -75,8 +75,7 @@ func (m *AuthController) RefreshToken(c *gin.Context) {
 		UserId:    userId.(string),
 		UserAgent: c.GetHeader("User-Agent"),
 	}
-
-	tokens, err := m.jwtAuth.GenerateTokens(cookie, userData)
+	tokens, err := m.jwtAuth.RefreshTokens(refreshToken, userData)
 	if err != nil {
 		c.JSON(401, gin.H{"error": err.Error()})
 	}
