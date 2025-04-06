@@ -29,8 +29,10 @@ func NewJwtAuthManager(jwt_auth_repository jwt_auth_repository.JwtAuthRepository
 }
 
 type JwtTokens struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken        string
+	RefreshToken       string
+	AccessTokenExpiry  int64
+	RefreshTokenExpiry int64
 }
 
 type UserData struct {
@@ -54,8 +56,10 @@ func (m *JwtAuthManager) GenerateTokens(userData *UserData) (JwtTokens, error) {
 	}
 
 	jwtTokens := JwtTokens{
-		AccessToken:  accessTokenString,
-		RefreshToken: refreshTokenString,
+		AccessToken:        accessTokenString,
+		RefreshToken:       refreshTokenString,
+		AccessTokenExpiry:  accessTokenExpiry.Unix(),
+		RefreshTokenExpiry: refreshTokenExpiry.Unix(),
 	}
 	_, err = m.addTokensInStore(userData, &jwtTokens, refreshTokenExpiry)
 
@@ -81,7 +85,6 @@ func (m *JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtToke
 		ID:           uuid.New(),
 		AccessToken:  jwtTokens.AccessToken,
 		RefreshToken: jwtTokens.RefreshToken,
-		UserId:       userData.UserId,
 		UserAgent:    userData.UserAgent,
 		ExpiresIn:    expiresIn,
 		CreatedAt:    time.Now().UTC(),
