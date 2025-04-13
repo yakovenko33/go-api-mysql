@@ -11,17 +11,23 @@ import (
 	response_helper "go-api-docker/internal/common/ui/response"
 	login_handler "go-api-docker/internal/go_crm/auth/application/service/login"
 	login_request "go-api-docker/internal/go_crm/auth/application/service/login/request"
+	refresh_token_handler "go-api-docker/internal/go_crm/auth/application/service/refresh_tokens"
 	refresh_token "go-api-docker/internal/go_crm/auth/application/service/refresh_tokens/request"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	loginHandler *login_handler.LoginHandler
-	jwtAuth      jwt_auth.JwtAuthManagerInterface
+	loginHandler        *login_handler.LoginHandler
+	jwtAuth             jwt_auth.JwtAuthManagerInterface
+	refreshTokenHandler refresh_token_handler.RefreshTokensHandler
 }
 
-func NewAuthController(loginHandler *login_handler.LoginHandler, jwtAuth jwt_auth.JwtAuthManagerInterface) *AuthController {
+func NewAuthController(
+	loginHandler *login_handler.LoginHandler,
+	jwtAuth jwt_auth.JwtAuthManagerInterface,
+	refreshTokenHandler refresh_token_handler.RefreshTokensHandler,
+) *AuthController {
 	return &AuthController{
 		loginHandler: loginHandler,
 		jwtAuth:      jwtAuth,
@@ -42,8 +48,8 @@ func (m *AuthController) Login(c *gin.Context) {
 
 	result := m.loginHandler.Handle(loginRequest)
 	if len(result.GetErrorsValidation()) == 0 && result.GetError() == "" {
-		resultValue, _ := result.GetResult()
-		c.SetCookie("refresh_token", resultValue.RefreshToken, int(resultValue.RefreshTokenExpiry), "/", os.Getenv("APP_DOMAIN"), true, true)
+		tokens, _ := result.GetResult()
+		setRefreshToken(c, tokens)
 	}
 
 	response_helper.Response(c, result)
@@ -71,15 +77,13 @@ func (m *AuthController) RefreshToken(c *gin.Context) {
 		UserAgent:    c.GetHeader("User-Agent"),
 		RefreshToken: refreshToken,
 	}
-	refresh_token.CreateRefreshTokens(requestData)
+	request := refresh_token.CreateRefreshTokens(requestData)
+	result := m.refreshTokenHandler.Handle(request)
 
-	// tokens, err := m.jwtAuth.RefreshTokens(refreshToken, userData)
-	// if err != nil {
-	// 	c.JSON(401, gin.H{"error": err.Error()})
-	// }
-	setRefreshToken(c, &tokens)
+	tokens, _ := result.GetResult()
+	setRefreshToken(c, tokens)
 
-	c.JSON(200, gin.H{"data": "refreshToken"})
+	response_helper.Response(c, result)
 }
 
 func setRefreshToken(c *gin.Context, tokens *jwt_auth.JwtTokens) {
@@ -95,10 +99,10 @@ func RegisterAuthRoutes(router *gin.Engine, jwtAuth jwt_auth.JwtAuthManagerInter
 	{
 		group.POST("/login", authController.Login)
 		group.POST("/recoveryPassword", authController.RecoveryPassword)
+		group.POST("/refreshToken", authController.RefreshToken)
 	}
 	groupSecure := router.Group("/api", middleware.CombinedMiddleware(jwtAuth)...)
 	{
 		groupSecure.POST("/loguout", authController.Loguout)
-		groupSecure.POST("/refreshToken", authController.RefreshToken)
 	}
 }

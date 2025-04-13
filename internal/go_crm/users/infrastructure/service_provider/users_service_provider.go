@@ -4,6 +4,7 @@ import (
 	"go.uber.org/fx"
 
 	login_handler "go-api-docker/internal/go_crm/auth/application/service/login"
+	refresh_tokens_handler "go-api-docker/internal/go_crm/auth/application/service/refresh_tokens"
 	auth_controllers "go-api-docker/internal/go_crm/auth/ui/controllers"
 	users_repository "go-api-docker/internal/go_crm/users/infrastructure/repositories/users_repository"
 	users_controllers "go-api-docker/internal/go_crm/users/ui/controllers"
@@ -17,11 +18,13 @@ var UsersServiceProvider = fx.Options(
 		),
 		login_handler.NewLoginHandler,
 		auth_controllers.NewAuthController,
+		refresh_tokens_handler.NewLoginRefreshTokensHandler,
 	),
 	fx.Invoke(
 		users_repository.NewUsersRrepository,
 		auth_controllers.NewAuthController,
 		users_controllers.RegisterUserRoutes,
 		login_handler.NewLoginHandler,
+		refresh_tokens_handler.NewLoginRefreshTokensHandler,
 	),
 )
