@@ -43,8 +43,7 @@ func createSuperAdmin(DB *gorm.DB, accessControlModel *casbin.Enforcer) error {
 		return err
 	}
 	if userByEmail != nil {
-		fmt_color.PrintError("Super Admin alredy created.")
-		return err
+		return errors.New("super admin alredy created")
 	}
 
 	user, err := factoryUser()
@@ -56,20 +55,20 @@ func createSuperAdmin(DB *gorm.DB, accessControlModel *casbin.Enforcer) error {
 	result := DB.Create(user)
 	if result.Error != nil {
 		fmt_color.PrintError("Error inserting user:" + result.Error.Error())
-		return err
+		return result.Error
 	}
 
 	fmt_color.PrintMessage(fmt_color.Green, "User created with ID: "+user.ID.String())
-	accessControlModel.AddGroupingPolicy(user.ID.String(), "super_admin")
+	_, err = accessControlModel.AddGroupingPolicy(user.ID.String(), "super_admin")
 
 	return err
 }
 
 func findUserByEmail(DB *gorm.DB) (*users_entities.User, error) {
 	var user users_entities.User
-	result := DB.Where("email = ?", os.Getenv("SUPER_ADMIN_EMAIL")).First(&user)
+	result := DB.Where("email = ?", os.Getenv("SUPER_ADMIN_EMAIL")).Find(&user)
 
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	if result.RowsAffected == 0 {
 		return nil, nil
 	}
 	if result.Error != nil {

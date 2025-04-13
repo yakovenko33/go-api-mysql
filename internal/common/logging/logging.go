@@ -16,11 +16,11 @@ var (
 func InitLogging() *zap.Logger {
 	once.Do(func() {
 		logFile := &lumberjack.Logger{
-			Filename:   "internal/common/logs.log", // Log file path
-			MaxSize:    100,                        // Max size in MB before rotation
-			MaxBackups: 3,                          // Max number of backups
-			MaxAge:     14,                         // Max number of days to keep old logs
-			Compress:   true,                       // Enable compression (gzipped backups)
+			Filename:   "internal/common/logging/logs.log", // Log file path
+			MaxSize:    100,                                // Max size in MB before rotation
+			MaxBackups: 3,                                  // Max number of backups
+			MaxAge:     14,                                 // Max number of days to keep old logs
+			Compress:   true,                               // Enable compression (gzipped backups)
 		}
 
 		encoderConfig := zapcore.EncoderConfig{

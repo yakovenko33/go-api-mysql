@@ -10,8 +10,10 @@ import (
 	database "go-api-docker/internal/common/database"
 	logging "go-api-docker/internal/common/logging"
 	access_control_model "go-api-docker/internal/common/security/access_control_models"
+	auth_service_provider "go-api-docker/internal/common/security/auth/infrastructure/service_provider"
 	server "go-api-docker/internal/common/server"
-	register_routes "go-api-docker/internal/common/server/controllers"
+	auth_module_service_provider "go-api-docker/internal/go_crm/auth/infrastructure/service_provider"
+	users_service_provider "go-api-docker/internal/go_crm/users/infrastructure/service_provider"
 )
 
 func coreApp() *fx.App {
@@ -22,7 +24,9 @@ func coreApp() *fx.App {
 			access_control_model.InitAccessControlModel,
 			server.NewRouter,
 		),
-		register_routes.Controllers,
+		auth_service_provider.AuthServiceProvider,
+		users_service_provider.UsersServiceProvider,
+		auth_module_service_provider.AuthModuleServiceProvider,
 		fx.Invoke(
 			server.StartServer,
 		),

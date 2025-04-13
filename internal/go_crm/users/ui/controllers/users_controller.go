@@ -12,5 +12,6 @@ func RegisterUserRoutes(router *gin.Engine) {
 	group := router.Group("/api")
 	{
 		group.POST("/user", createUser)
+		group.POST("/user-test", createUser)
 	}
 }

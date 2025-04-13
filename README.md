@@ -12,7 +12,7 @@ Once you are done with the configuration, you can run the following command to s
 go run main.go
 ```
 
-This will start the API on `http://localhost:3000`.
+This will start the API on `http://localhost:8080`.
 
 
 ### Command migration ###
