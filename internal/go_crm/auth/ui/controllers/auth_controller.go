@@ -20,17 +20,18 @@ import (
 type AuthController struct {
 	loginHandler        *login_handler.LoginHandler
 	jwtAuth             jwt_auth.JwtAuthManagerInterface
-	refreshTokenHandler refresh_token_handler.RefreshTokensHandler
+	refreshTokenHandler *refresh_token_handler.RefreshTokensHandler
 }
 
 func NewAuthController(
 	loginHandler *login_handler.LoginHandler,
 	jwtAuth jwt_auth.JwtAuthManagerInterface,
-	refreshTokenHandler refresh_token_handler.RefreshTokensHandler,
+	refreshTokenHandler *refresh_token_handler.RefreshTokensHandler,
 ) *AuthController {
 	return &AuthController{
-		loginHandler: loginHandler,
-		jwtAuth:      jwtAuth,
+		loginHandler:        loginHandler,
+		jwtAuth:             jwtAuth,
+		refreshTokenHandler: refreshTokenHandler,
 	}
 }
 
