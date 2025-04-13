@@ -1,7 +1,11 @@
 package refresh_tokens
 
 import (
+	"errors"
+	"fmt"
+
 	result_handler "go-api-docker/internal/common/application/service/result_handler"
+	auth_errors "go-api-docker/internal/common/security/auth/errors"
 	jwt_auth "go-api-docker/internal/common/security/auth/jwt_auth"
 	refresh_tokens "go-api-docker/internal/go_crm/auth/application/service/refresh_tokens/request"
 
@@ -26,18 +30,19 @@ func NewLoginRefreshTokensHandler(
 }
 
 func (m *RefreshTokensHandler) Handle(request *refresh_tokens.RefreshTokens) *result_handler.ResultHandler[*jwt_auth.JwtTokens] {
-	resultHandler, err := result_handler.FactoryResultHandler[*jwt_auth.JwtTokens](request)
-
-	if err != nil {
-		return resultHandler
-	}
-	m.resultHandler = resultHandler
-
 	userData := &jwt_auth.UserData{
 		UserId:    request.GetUserId(),
 		UserAgent: request.GetUserAgent(),
 	}
+
 	tokens, err := m.jwtAuth.RefreshTokens(request.GetRefreshToken(), userData)
+	var authError *auth_errors.TokenInvalidError
+	if err != nil && errors.As(err, &authError) {
+		m.logger.Error(fmt.Sprintf("Error for jwtAuth.RefreshTokens %s", err))
+		return result_handler.NewResultHandler[*jwt_auth.JwtTokens](authError.Code).
+			SetError(authError.Message).
+			SetStatus(result_handler.ServerError)
+	}
 
 	return m.resultHandler.SetSingleResult(&tokens).SetStatus(result_handler.StatusOk).SetStatusCode(200)
 }
