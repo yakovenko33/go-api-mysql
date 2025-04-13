@@ -10,6 +10,7 @@ import (
 type JwtAuthRepositoryInterface interface {
 	AddTokens(entity *Tokens) (string, error)
 	//DeleteTokens() (string, error)
+	AddToBlackList(entity *Tokens) error
 	RefreshTokenExist(refreshToken string) (*Tokens, error)
 }
 
@@ -19,8 +20,9 @@ type Tokens struct {
 	AccessToken  string    `gorm:"column:access_token"`
 	RefreshToken string    `gorm:"column:refresh_token"`
 	UserAgent    string    `gorm:"column:user_agent"`
-	ExpiresIn    time.Time `gorm:"type:datetime;column:expires_in"`
-	CreatedAt    time.Time `gorm:"type:datetime;column:created_at"`
+	BlackList    uint8     `gorm:"column:black_list"`
+	ExpiresIn    time.Time `gorm:"column:expires_in"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
 }
 
 type JwtAuthRepository struct {
@@ -42,6 +44,14 @@ func (m JwtAuthRepository) AddTokens(entity *Tokens) (string, error) {
 	}
 
 	return entity.ID.String(), nil
+}
+
+func (m JwtAuthRepository) AddToBlackList(entity *Tokens) error {
+	result := m.db.Model(entity).Update("black_list", 1)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (m JwtAuthRepository) RefreshTokenExist(refreshToken string) (*Tokens, error) {

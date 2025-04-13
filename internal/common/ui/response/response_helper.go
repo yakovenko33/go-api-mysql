@@ -26,3 +26,12 @@ func Response[T any](c *gin.Context, result *result_handler.ResultHandler[T]) {
 		"status":            result.GetStatus(),
 	})
 }
+
+func ResponseServerError(c *gin.Context, statusCode int, err error) {
+	c.JSON(statusCode, gin.H{
+		"data":              nil,
+		"error":             err.Error(),
+		"validation_errors": nil,
+		"status":            result_handler.ServerError,
+	})
+}

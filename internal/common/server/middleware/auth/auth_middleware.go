@@ -29,7 +29,7 @@ func AuthMiddleware(jwtAuth jwt_auth.JwtAuthManagerInterface) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", userId)
+		c.Set("userId", userId)
 		c.Next()
 	}
 }

@@ -3,6 +3,8 @@ package result_handler
 import (
 	"errors"
 	"net/http"
+
+	custome_error "go-api-docker/internal/common/errors"
 )
 
 type ResultHandler[T any] struct {
@@ -82,11 +84,11 @@ const (
 	ServerError        = "ServerError"
 	ForbiddenError     = "ForbiddenError"
 	BusinessLogicError = "BusinessLogicError"
+	UnauthorizedError  = "UnauthorizedError"
 	DublicationError   = "DuplicationError"
 )
 
 type RequestInterface interface {
-	GetError() error
 	GetValidationErrors() map[string]string
 }
 
@@ -98,17 +100,20 @@ func FactoryResultHandler[T any](request RequestInterface) (*ResultHandler[T], e
 			SetStatus(ValidateError), errors.New("has ErrorsValidation")
 	}
 
-	err := request.GetError()
-	if err != nil {
-		return NewResultHandler[T](http.StatusUnprocessableEntity).
-			SetError(err.Error()).
-			SetStatus(ServerError), errors.New("error mapping data")
-	}
-
 	return &ResultHandler[T]{
 		statusCode:       200,
 		status:           "",
 		errorString:      "",
 		errorsValidation: make(map[string]string),
 	}, nil
+}
+
+func FactoryResultHandlerCustomeError[T any](err error) (*ResultHandler[T], error) {
+	var customeError *custome_error.CustomeError
+	if err != nil && errors.As(err, &customeError) {
+		return NewResultHandler[T](customeError.Code).
+			SetError(customeError.Message).
+			SetStatus(customeError.Status), errors.New("custome error from request")
+	}
+	return nil, nil
 }

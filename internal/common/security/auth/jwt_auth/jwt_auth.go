@@ -109,7 +109,17 @@ func (m *JwtAuthManager) RefreshTokens(refreshTokenString string, userData *User
 	}
 	userData.UserId = userId
 
-	return m.GenerateTokens(userData)
+	newTokens, err := m.GenerateTokens(userData)
+	if err != nil {
+		return newTokens, err
+	}
+
+	err = m.jwt_auth_repository.AddToBlackList(token)
+	if err != nil {
+		return newTokens, err
+	}
+
+	return newTokens, nil
 }
 
 func (m *JwtAuthManager) VerifyToken(tokenString string) (string, error) {
