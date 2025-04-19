@@ -35,3 +35,12 @@ func ResponseServerError(c *gin.Context, statusCode int, err error) {
 		"status":            result_handler.ServerError,
 	})
 }
+
+func ResponseServerSuccessful[T any](c *gin.Context, data T, statusCode int) {
+	c.JSON(statusCode, gin.H{
+		"data":              data,
+		"error":             nil,
+		"validation_errors": nil,
+		"status":            result_handler.StatusOk,
+	})
+}

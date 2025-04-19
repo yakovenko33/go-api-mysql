@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -15,23 +16,27 @@ import (
 	refresh_token "go-api-docker/internal/go_crm/auth/application/service/refresh_tokens/request"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type AuthController struct {
 	loginHandler        *login_handler.LoginHandler
 	jwtAuth             jwt_auth.JwtAuthManagerInterface
 	refreshTokenHandler *refresh_token_handler.RefreshTokensHandler
+	logger              *zap.Logger
 }
 
 func NewAuthController(
 	loginHandler *login_handler.LoginHandler,
 	jwtAuth jwt_auth.JwtAuthManagerInterface,
 	refreshTokenHandler *refresh_token_handler.RefreshTokensHandler,
+	logger *zap.Logger,
 ) *AuthController {
 	return &AuthController{
 		loginHandler:        loginHandler,
 		jwtAuth:             jwtAuth,
 		refreshTokenHandler: refreshTokenHandler,
+		logger:              logger,
 	}
 }
 
@@ -57,7 +62,19 @@ func (m *AuthController) Login(c *gin.Context) {
 }
 
 func (m *AuthController) Loguout(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Loguout"})
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		response_helper.ResponseServerError(c, http.StatusUnauthorized, errors.New("you does not have refresh_token"))
+		return
+	}
+	err = m.jwtAuth.AddToBlackList(refreshToken)
+	if err != nil {
+		m.logger.Error(fmt.Sprintf("Loguout %s", err))
+		response_helper.ResponseServerError(c, http.StatusUnauthorized, errors.New("Loguout is not not successful"))
+		return
+	}
+
+	response_helper.ResponseServerSuccessful(c, "Loguout is successful", http.StatusOK)
 }
 
 func (m *AuthController) RefreshToken(c *gin.Context) {
@@ -99,8 +116,8 @@ func RegisterAuthRoutes(router *gin.Engine, jwtAuth jwt_auth.JwtAuthManagerInter
 	group := router.Group("/api")
 	{
 		group.POST("/login", authController.Login)
-		group.POST("/recoveryPassword", authController.RecoveryPassword)
-		group.POST("/refreshToken", authController.RefreshToken)
+		group.POST("/recovery-password", authController.RecoveryPassword)
+		group.POST("/refresh-token", authController.RefreshToken)
 	}
 	groupSecure := router.Group("/api", middleware.CombinedMiddleware(jwtAuth)...)
 	{

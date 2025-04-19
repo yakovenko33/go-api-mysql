@@ -16,6 +16,7 @@ type JwtAuthManagerInterface interface {
 	GenerateTokens(userData *UserData) (JwtTokens, error)
 	VerifyToken(accessToken string) (string, error)
 	RefreshTokens(refreshTokens string, userData *UserData) (JwtTokens, error)
+	AddToBlackList(refreshTokens string) error
 }
 
 type JwtAuthManager struct {
@@ -86,6 +87,8 @@ func (m *JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtToke
 		AccessToken:  jwtTokens.AccessToken,
 		RefreshToken: jwtTokens.RefreshToken,
 		UserAgent:    userData.UserAgent,
+		UserId:       userData.UserId,
+		BlackList:    0,
 		ExpiresIn:    expiresIn,
 		CreatedAt:    time.Now().UTC(),
 	}
@@ -95,7 +98,7 @@ func (m *JwtAuthManager) addTokensInStore(userData *UserData, jwtTokens *JwtToke
 }
 
 func (m *JwtAuthManager) RefreshTokens(refreshTokenString string, userData *UserData) (JwtTokens, error) {
-	token, err := m.jwt_auth_repository.RefreshTokenExist(refreshTokenString)
+	token, err := m.jwt_auth_repository.GetTokensByRefreshToken(refreshTokenString)
 	if token == nil {
 		return JwtTokens{}, nil
 	}
@@ -140,4 +143,20 @@ func (m *JwtAuthManager) VerifyToken(tokenString string) (string, error) {
 	}
 
 	return "", auth_errors.NewAuthError(403, "token invalid")
+}
+
+func (m *JwtAuthManager) AddToBlackList(refreshTokens string) error {
+	token, err := m.jwt_auth_repository.GetTokensByRefreshToken(refreshTokens)
+	if token == nil {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	err = m.jwt_auth_repository.AddToBlackList(token)
+	if err != nil {
+		return err
+	}
+	return nil
 }
