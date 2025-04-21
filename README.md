@@ -27,4 +27,4 @@ go run main.go
 
 
 ### Command start CLI app ###
-`go run main.go cli create-super-admin`
+`go run cmd/cli/main.go create-super-admin`

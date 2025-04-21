@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"os"
@@ -40,4 +40,8 @@ func RunCLI() {
 
 func addCommand(DB *gorm.DB, accessControlModel *casbin.Enforcer) {
 	rootCmd.AddCommand(creates_uper_admin.СreateSuperAdmin(DB, accessControlModel))
+}
+
+func main() {
+	RunCLI()
 }

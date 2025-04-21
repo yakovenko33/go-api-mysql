@@ -1,12 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	"go.uber.org/fx"
 
-	cli "go-api-docker/cmd/cli"
 	database "go-api-docker/internal/common/database"
 	logging "go-api-docker/internal/common/logging"
 	access_control_model "go-api-docker/internal/common/security/access_control_models"
@@ -35,17 +31,6 @@ func coreApp() *fx.App {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		app := coreApp()
-		app.Run()
-		return
-	}
-
-	switch os.Args[1] {
-	case "cli":
-		os.Args = os.Args[1:]
-		cli.RunCLI()
-	default:
-		fmt.Println("Unknown mode. Usage: myapp <web|cli>")
-	}
+	app := coreApp()
+	app.Run()
 }

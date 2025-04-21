@@ -76,10 +76,10 @@ func (m *LoginHandler) findUserByEmail(email string) (*users_entities.User, erro
 
 	if err != nil {
 		m.logger.Error(fmt.Sprintf("Error for usersRepository.FindUserByEmail %s", err))
-		return &users_entities.User{}, newCustomeError(500, "Problem on server. Try next time.", result_handler.ServerError)
+		return &users_entities.User{}, newCustomeError(500, "problem on server. Try next time.", result_handler.ServerError)
 	}
 	if user == nil {
-		return &users_entities.User{}, newCustomeError(404, fmt.Sprintf("User by email %s not found.", email), result_handler.BusinessLogicError)
+		return &users_entities.User{}, newCustomeError(404, fmt.Sprintf("user by email %s not found.", email), result_handler.BusinessLogicError)
 	}
 
 	return user, nil

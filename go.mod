@@ -28,6 +28,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.20.3 // indirect
 	github.com/glebarez/sqlite v1.7.0 // indirect
+	github.com/go-co-op/gocron v1.37.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
@@ -57,6 +58,7 @@ require (
 	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
