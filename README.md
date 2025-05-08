@@ -28,3 +28,6 @@ go run main.go
 
 ### Command start CLI app ###
 `go run cmd/cli/main.go create-super-admin`
+
+### For rabbitmq local ###
+http://localhost:15672/

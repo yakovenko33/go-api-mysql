@@ -1,0 +1,11 @@
+exchange: cron
+exchange_type: direct
+
+tasks:
+  - name: cleanup_tockens_table
+    routing_key: cleanup
+    queue: cron.cleanup_tockens_table
+    cron: "0 * * * *"  # каждый час
+    retry_ttl: 60000   # ms, TTL перед DLX/retry
+    max_retries: 5
+    dlx_enabled: true

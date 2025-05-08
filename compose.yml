@@ -51,7 +51,18 @@ services:
     depends_on:
       - go-server  
     networks:
-      - go-network    
+      - go-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"    # for app
+      - "15672:15672"  # for access from browser (RabbitMQ UI)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest  
+    networks:
+      - go-network      
 
 volumes:
   dbdata:
