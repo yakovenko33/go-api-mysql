@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,22 +13,40 @@ import (
 	"gorm.io/gorm"
 
 	"database/sql"
+	queue_tasks "go-api-docker/cmd/scheduler/queue"
+	models "go-api-docker/cmd/scheduler/tasks"
 	database "go-api-docker/internal/common/database"
-	models "go-api-docker/internal/common/scheduler/models"
+	publisher "go-api-docker/internal/common/rabbitmq/publisher"
 
 	gocron "github.com/go-co-op/gocron/v2"
+	"github.com/rabbitmq/amqp091-go"
+)
+
+var (
+	publisherInstance *publisher.Publisher
+	dbInstance        *gorm.DB
 )
 
 func main() {
+	limitConcurrentJobs := flag.Uint("limit_concurrent_jobs", 5, "limit_concurrent_jobs")
+	channelPoolCount := flag.Int("channel_pool_count", 5, "channel_pool_count for queue")
+	flag.Parse()
+
+	if err := initConnetctions(channelPoolCount); err != nil {
+		log.Printf("failed to shutdown scheduler: %v", err)
+		return
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	scheduler, err := getScheduler(cancel)
+	scheduler, err := getScheduler(cancel, *limitConcurrentJobs)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	defer func() {
+		defer publisherInstance.CloseChannelPool()
 		if err := scheduler.Shutdown(); err != nil {
 			log.Printf("failed to shutdown scheduler: %v", err)
 		}
@@ -45,7 +64,23 @@ func main() {
 	log.Println("Shutting down scheduler...")
 }
 
-func getScheduler(cancel context.CancelFunc) (gocron.Scheduler, error) {
+func initConnetctions(channelPoolCount *int) error {
+	db, err := getDB()
+	if err != nil {
+		return err
+	}
+	dbInstance = db
+
+	publisherValue, err := queue_tasks.CreateNewPublisher(*channelPoolCount)
+	if err != nil {
+		return err
+	}
+	publisherInstance = publisherValue
+
+	return nil
+}
+
+func getScheduler(cancel context.CancelFunc, limitConcurrentJobs uint) (gocron.Scheduler, error) {
 	go handleShutdown(cancel)
 
 	loc, err := time.LoadLocation("UTC")
@@ -55,7 +90,7 @@ func getScheduler(cancel context.CancelFunc) (gocron.Scheduler, error) {
 
 	scheduler, err := gocron.NewScheduler(
 		gocron.WithLocation(loc),
-		gocron.WithLimitConcurrentJobs(5, gocron.LimitModeWait),
+		gocron.WithLimitConcurrentJobs(limitConcurrentJobs, gocron.LimitModeWait),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("not LoadLocation, message: %s", err)
@@ -73,17 +108,13 @@ func handleShutdown(cancel context.CancelFunc) {
 }
 
 func addJobs(scheduler gocron.Scheduler) error {
-	db, err := getDB()
-	if err != nil {
-		return err
-	}
-	rows, err := getTasks(db)
+	rows, err := getTasks()
 	if err != nil {
 		return err
 	}
 	for rows.Next() {
 		var сronTask models.CronTask
-		if err := db.ScanRows(rows, &сronTask); err != nil {
+		if err := dbInstance.ScanRows(rows, &сronTask); err != nil {
 			return err
 		}
 		if err := addJob(&сronTask, scheduler); err != nil {
@@ -96,11 +127,11 @@ func addJobs(scheduler gocron.Scheduler) error {
 func addJob(task *models.CronTask, scheduler gocron.Scheduler) error {
 	_, err := scheduler.NewJob(
 		gocron.CronJob(
-			"1 * * * *",
+			task.Cron,
 			false,
 		),
 		gocron.NewTask(
-			task,
+			getTask(task),
 		),
 	)
 	if err != nil {
@@ -119,8 +150,8 @@ func getDB() (*gorm.DB, error) {
 	return db, nil
 }
 
-func getTasks(db *gorm.DB) (*sql.Rows, error) {
-	rows, err := db.Model(&models.CronTask{}).Rows()
+func getTasks() (*sql.Rows, error) {
+	rows, err := dbInstance.Model(&models.CronTask{}).Rows()
 	if err != nil {
 		return nil, fmt.Errorf("query error: %s", err)
 	}
@@ -129,6 +160,19 @@ func getTasks(db *gorm.DB) (*sql.Rows, error) {
 	return rows, nil
 }
 
-func task() {
-	fmt.Println("Выполняется задача:", time.Now())
+func getTask(task *models.CronTask) func() {
+	return func() {
+		publisherParams := publisher.PublisherParams{
+			Exchange:   "cron_scheduler",
+			RoutingKey: task.RoutingKey,
+			RetryCount: task.MaxRetries,
+			RetryDelay: task.RetryTTL * time.Second,
+			Msg: amqp091.Publishing{
+				ContentType: "application/json",
+				Body:        []byte{},
+			},
+		}
+
+		publisherInstance.Publish(publisherParams)
+	}
 }

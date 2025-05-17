@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 
+	channel_pool "go-api-docker/internal/common/rabbitmq/channel_pool"
+
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -11,25 +13,33 @@ import (
 type Middleware func(next PublisherFunc) PublisherFunc
 
 // PublisherFunc defines the signature of the publish function
-type PublisherFunc func(exchange, key string, msg amqp091.Publishing) error
+type PublisherFunc func(params PublisherParams) error
 
 type Publisher struct {
-	pool        *ChannelPool
-	retryCount  int
-	retryDelay  time.Duration
+	pool        *channel_pool.ChannelPool
 	middlewares []Middleware
 }
 
-func NewPublisher(pool *ChannelPool, retryCount int, retryDelay time.Duration, middlewares ...Middleware) *Publisher {
+type PublisherParams struct {
+	Exchange   string
+	RoutingKey string
+	RetryCount int
+	RetryDelay int16
+	Msg        amqp091.Publishing
+}
+
+func NewPublisher(pool *channel_pool.ChannelPool, middlewares []Middleware) *Publisher {
 	return &Publisher{
 		pool:        pool,
-		retryCount:  retryCount,
-		retryDelay:  retryDelay,
 		middlewares: middlewares,
 	}
 }
 
-func (p *Publisher) Publish(exchange, key string, msg amqp091.Publishing) error {
+func (p *Publisher) CloseChannelPool() {
+	p.pool.Close()
+}
+
+func (p *Publisher) Publish(params PublisherParams) error {
 	fn := p.publishWithRetry
 
 	// we are running through middleware
@@ -37,30 +47,30 @@ func (p *Publisher) Publish(exchange, key string, msg amqp091.Publishing) error 
 		fn = p.middlewares[i](fn)
 	}
 
-	return fn(exchange, key, msg)
+	return fn(params)
 }
 
-func (p *Publisher) publishWithRetry(exchange, key string, msg amqp091.Publishing) error {
+func (p *Publisher) publishWithRetry(params PublisherParams) error {
 	var err error
 
-	for i := 0; i <= p.retryCount; i++ {
+	for i := 0; i <= params.RetryCount; i++ {
 		ch, chErr := p.pool.Get()
 		if chErr != nil {
 			err = chErr
-			log.Printf("🐛 [retry %d/%d] get channel error: %v\n", i, p.retryCount, chErr)
-			time.Sleep(p.retryDelay)
+			log.Printf("[retry %d/%d] get channel error: %v\n", i, params.RetryCount, chErr)
+			time.Sleep(time.Duration(params.RetryDelay) * time.Second)
 			continue
 		}
 
-		err = ch.Publish(exchange, key, false, false, msg)
+		err = ch.Publish(params.Exchange, params.RoutingKey, false, false, params.Msg)
 		p.pool.Put(ch)
 
 		if err == nil {
 			return nil
 		}
 
-		log.Printf("🔁 [retry %d/%d] publish error: %v\n", i, p.retryCount, err)
-		time.Sleep(p.retryDelay * time.Duration(i+1)) // экспоненциальная задержка
+		log.Printf("[retry %d/%d] publish error: %v\n", i, params.RetryCount, err) // need correct log
+		time.Sleep(time.Duration(params.RetryDelay) * time.Second)
 	}
 
 	return err
@@ -79,7 +89,8 @@ loggerMiddleware := func(next rabbitmq.PublisherFunc) rabbitmq.PublisherFunc {
 	}
 }
 
-publisher := rabbitmq.NewPublisher(pool, 3, 2*time.Second, loggerMiddleware)
+middlewares := [1]Middleware{loggerMiddleware}
+publisher := rabbitmq.NewPublisher(pool, 3, 2*time.Second, middlewares)
 
 err = publisher.Publish(
 	"my-exchange",
