@@ -16,6 +16,7 @@ import (
 	queue_tasks "go-api-docker/cmd/scheduler/queue"
 	models "go-api-docker/cmd/scheduler/tasks"
 	database "go-api-docker/internal/common/database"
+	channel_pool "go-api-docker/internal/common/rabbitmq/channel_pool"
 	publisher "go-api-docker/internal/common/rabbitmq/publisher"
 
 	gocron "github.com/go-co-op/gocron/v2"
@@ -71,13 +72,28 @@ func initConnetctions(channelPoolCount *int) error {
 	}
 	dbInstance = db
 
-	publisherValue, err := queue_tasks.CreateNewPublisher(*channelPoolCount)
+	publisherValue, err := queue_tasks.CreateNewPublisher(*channelPoolCount, getQueueList())
 	if err != nil {
 		return err
 	}
 	publisherInstance = publisherValue
 
 	return nil
+}
+
+func getQueueList() []channel_pool.QueueDeclare {
+	queue := channel_pool.QueueDeclare{
+		Name:       "cron_scheduler",
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
+
+	queueList := []channel_pool.QueueDeclare{queue}
+
+	return queueList
 }
 
 func getScheduler(cancel context.CancelFunc, limitConcurrentJobs uint) (gocron.Scheduler, error) {
@@ -166,7 +182,7 @@ func getTask(task *models.CronTask) func() {
 			Exchange:   "cron_scheduler",
 			RoutingKey: task.RoutingKey,
 			RetryCount: task.MaxRetries,
-			RetryDelay: task.RetryTTL * time.Second,
+			RetryDelay: int16(task.RetryTTL),
 			Msg: amqp091.Publishing{
 				ContentType: "application/json",
 				Body:        []byte{},
